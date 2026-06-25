@@ -280,22 +280,31 @@
     form.append(wrapElementWithDiv(h1));
 
     for (const field of fields) {
-      const label = document.createElement("label");
-      label.htmlFor = field.input;
-      label.textContent = field.label;
+      const isGroup = Boolean(field.choices);
+
+      const questionId = `${field.input}-label`;
+      const question = document.createElement(isGroup ? "div" : "label");
+      question.textContent = field.label;
+      if (isGroup) {
+        question.id = questionId;
+      } else {
+        question.htmlFor = field.input;
+      }
 
       const inputs = [];
 
-      if (field.choices) {
+      if (isGroup) {
         for (const choice of field.choices) {
+          const inputId = `${field.input}-${choice.value}`;
+
           const input = document.createElement("input");
           input.type = field.type;
           input.name = field.input;
-          input.id = choice.value;
+          input.id = inputId;
           input.value = choice.value;
 
           const label = document.createElement("label");
-          label.htmlFor = choice.value;
+          label.htmlFor = inputId;
           label.textContent = choice.label;
 
           inputs.push(wrapElementWithDiv(input, label));
@@ -310,10 +319,17 @@
         inputs.push(input);
       }
 
-      form.append(wrapElementWithDiv(
-        wrapElementWithDiv(label),
+      const card = wrapElementWithDiv(
+        wrapElementWithDiv(question),
         ...inputs,
-      ));
+      );
+
+      if (isGroup) {
+        card.setAttribute("role", field.type === "radio" ? "radiogroup" : "group");
+        card.setAttribute("aria-labelledby", questionId);
+      }
+
+      form.append(card);
     }
 
     const submitButton = document.createElement("button");
@@ -324,7 +340,6 @@
     resetButton.textContent = "Bersihkan form";
 
     form.append(wrapElementWithDiv(submitButton, resetButton))
-    submitButton
   </script>
 </body>
 
